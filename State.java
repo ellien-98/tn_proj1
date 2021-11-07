@@ -89,45 +89,37 @@ public class State implements Comparable<State>
     {
 
         ArrayList<State> children = new ArrayList<>();
-        State child = new State(this.missionariesLeft, this.cannibalsLeft, this.missionariesRight, this.cannibalsRight, this.boatRight, this.capacity, this.maxCrosses);
-        if (maxCrosses != 0) {
+    	State child = new State(this.missionariesLeft, this.cannibalsLeft, this.missionariesRight, this.cannibalsRight, this.boatRight, this.capacity, this.maxCrosses);
+        //if (maxCrosses != 0) {
+    		//when boat is left and want to go right 
             if (child.randCrosstoRight()) {
-                //while (!child.isAcceptable()) {
-                //child.randCrosstoRight();
-                //}
-                if (heuristic > 0) child.evaluate(heuristic);
-                //child.randCrosstoRight();
+                if (heuristic > 0) 
+                	child.evaluate(heuristic);
                 if (child.isAcceptable()) {
-                    //child.setFather(this);
                     children.add(child);
                     child.setFather(this);
                 }
-                else{
-                    children.add(this);
-                }
+                //else{
+                   // children.add(this);
+                //}
             }
+            //when boat is right and want to go left    
             child = new State(this.missionariesLeft, this.cannibalsLeft, this.missionariesRight, this.cannibalsRight, this.boatRight, this.capacity, this.maxCrosses);
-            //} else {
             if (child.randCrosstoLeft()) {
-                //while (!child.isAcceptable()) {
-                //child.randCrosstoLeft();
-                //}
-                if (heuristic > 0) child.evaluate(heuristic);
-                //child.randCrosstoLeft();
+                if (heuristic > 0) 
+                	child.evaluate(heuristic);
                 if (child.isAcceptable()) {
                     children.add(child);
                     child.setFather(this);
-
                 }
-                else{
-                    children.add(this);
-                }
+                //else{
+                    //children.add(this);
+                //}
             }
-            //}
-        }
-        else{
-            System.out.print("Over max crosses");
-        }
+        //}
+        //else{
+            //System.out.print("Over max crosses");
+        //}
         return children;
     }
 
@@ -432,20 +424,25 @@ public class State implements Comparable<State>
     @Override
     public int hashCode()
     {
-        return this.missionariesLeft + this.missionariesRight + this.cannibalsLeft + this.cannibalsRight + this.identifier();
+    	return java.util.Objects.hash(this.cannibalsLeft, this.missionariesLeft, this.cannibalsRight, this.cannibalsRight, this.boatRight);
+    	
+        //return this.missionariesLeft + this.missionariesRight + this.cannibalsLeft + this.cannibalsRight + this.identifier();
     }
 
     int identifier()
     {
-        int result = 0;
-
-        // a unique sum based on the numbers in each state.
+        //int result = 0;
+	// a unique sum based on the numbers in each state.
         // e.g., for i=j=0 in the fixed initial state --> 3^( (0*0) + 0) * 8 = 1 + 8 = 9
         // for another state, this will not be the same
-        result += Math.pow(this.missionariesRight, (this.missionariesRight + this.cannibalsRight) + this.cannibalsRight);
+        //result += Math.pow(this.missionariesRight, (this.missionariesRight + this.cannibalsRight) + this.cannibalsRight);
+	//return result;
+	int result = (int)Math.pow(this.missionariesRight, (this.missionariesRight * this.score) + this.score) * this.cannibalsRight;
 
         return result;
     }
+    
+    
 /*
     // override this for proper hash set comparisons.
     @Override
