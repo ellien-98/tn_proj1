@@ -432,7 +432,7 @@ public class State implements Comparable<State>
     @Override
     public int hashCode()
     {
-        return this.missionariesLeft + this.missionariesRight + this.cannibalsLeft + this.cannibalsRight + identifier();
+        return this.missionariesLeft + this.missionariesRight + this.cannibalsLeft + this.cannibalsRight + this.identifier();
     }
 
     int identifier()
