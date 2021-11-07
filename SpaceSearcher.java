@@ -19,12 +19,13 @@ public class SpaceSearcher
         if(initialState.isFinal()) return initialState;
         // step 1: put initial state in the frontier.
         this.frontier.add(initialState);
-        //this.closedSet.add(initialState);
+
         // step 2: check for empty frontier.
         while(this.frontier.size() > 0)
         {
             // step 3: get the first node out of the frontier.
             State currentState = this.frontier.remove(0);
+            currentState.print();
             // step 4: if final state, return.
             if(currentState.isFinal()) return currentState;
 

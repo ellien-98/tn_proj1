@@ -13,7 +13,9 @@ public class State implements Comparable<State>
     boolean boatRight;
     private int capacity;
     private int maxCrosses;
-    private int crosses;
+    //private int crosses;
+
+    //private int crossesLeft;
 
     private int randmiss;
     private int randcans;
@@ -29,8 +31,8 @@ public class State implements Comparable<State>
     
     
 
-    //apostasi apo thn riza mexri thn twrini katastasi
-    //private int G;
+    //distance from root
+    private int G;
 
     State(int missionariesLeft, int cannibalsLeft, int missionariesRight, int cannibalsRight, boolean boatRight, int capacity, int maxCrosses)
     {
@@ -42,18 +44,39 @@ public class State implements Comparable<State>
         
         this.capacity = capacity;
         this.maxCrosses = maxCrosses;
+        //this.crossesLeft = maxCrosses;
 
     }
-    
-    State(int missionariesLeft, int cannibalsLeft, int missionariesRight, int cannibalsRight, boolean boatRight)
-    {
+
+    public int getMissionariesLeft() {
+        return missionariesLeft;
+    }
+
+    public void setMissionariesLeft(int missionariesLeft) {
         this.missionariesLeft = missionariesLeft;
-        this.cannibalsLeft = cannibalsLeft;
-        this.missionariesRight = missionariesRight;
-        this.cannibalsRight = cannibalsRight;
-        this.boatRight = boatRight;       
     }
 
+    /*
+        State(int missionariesLeft, int cannibalsLeft, int missionariesRight, int cannibalsRight, boolean boatRight)
+        {
+            this.missionariesLeft = missionariesLeft;
+            this.cannibalsLeft = cannibalsLeft;
+            this.missionariesRight = missionariesRight;
+            this.cannibalsRight = cannibalsRight;
+            this.boatRight = boatRight;
+        }
+
+        State(int missionariesLeft, int cannibalsLeft, int missionariesRight, int cannibalsRight, boolean boatRight, int crossesLeft)
+        {
+            this.missionariesLeft = missionariesLeft;
+            this.cannibalsLeft = cannibalsLeft;
+            this.missionariesRight = missionariesRight;
+            this.cannibalsRight = cannibalsRight;
+            this.boatRight = boatRight;
+            this.crossesLeft = crossesLeft;
+
+        }
+    */
     void print()
     {
         System.out.println("-----------------------");
@@ -68,127 +91,146 @@ public class State implements Comparable<State>
     {
 
         ArrayList<State> children = new ArrayList<>();
-        //State root = new State(this.missionariesLeft, this.cannibalsLeft, this.missionariesRight, this.cannibalsRight, this.boatRight);
-        State child = new State(this.missionariesLeft, this.cannibalsLeft, this.missionariesRight, this.cannibalsRight, this.boatRight, this.capacity , this.crosses);
-            if (!boatRight) {
-            	child.randCrosstoRight();
-    			addToList(children, new State(this.missionariesLeft, this.cannibalsLeft, this.missionariesRight, this.cannibalsRight, boatRight)); // Two missionaries cross left to right.
-    			//addToList(child, new State(missionariesLeft, cannibalsLeft-2, missionariesRight, cannibalsRight+2, boatRight)); // Two cannibals cross left to right.
-    			//addToList(child, new State(missionariesLeft - 1, cannibalsLeft -1, missionariesRight + 1, cannibalsRight+1, boatRight)); // One missionary and one cannibal cross left to right.
-    			//addToList(child, new State(missionariesLeft - 1, cannibalsLeft, missionariesRight + 1, cannibalsRight, boatRight)); // One missionary crosses left to right.
-    			//addToList(child, new State(missionariesLeft, cannibalsLeft-1, missionariesRight, cannibalsRight+1, boatRight)); // One cannibal crosses left to right.
-    		} else {
-    			child.randCrosstoLeft();
-    			addToList(children, new State(this.missionariesLeft, this.cannibalsLeft, this.missionariesRight, this.cannibalsRight, boatRight)); // Two missionaries cross right to left.
-    			//addToList(child, new State(cannibalsLeft + 2, missionariesLeft, !boatRight,
-    					//cannibalsRight - 2, missionariesRight)); // Two cannibals cross right to left.
-    			//addToList(child, new State(cannibalsLeft + 1, missionariesLeft + 1, !boatRight,
-    					//cannibalsRight - 1, missionariesRight - 1)); // One missionary and one cannibal cross right to left.
-    			//addToList(child, new State(cannibalsLeft, missionariesLeft + 1, !boatRight,
-    					//cannibalsRight, missionariesRight - 1)); // One missionary crosses right to left.
-    			//addToList(child, new State(cannibalsLeft + 1, missionariesLeft, !boatRight,
-    					//cannibalsRight - 1, missionariesRight)); // One cannibal crosses right to left.
-    		}
+        State child = new State(missionariesLeft, cannibalsLeft, missionariesRight, cannibalsRight, boatRight, capacity, maxCrosses);
+                if (!boatRight) {
+                    //while (!child.isAcceptable()) {
+                        child.randCrosstoRight();
+                    //}
+                    if (heuristic > 0) child.evaluate(heuristic);
+                    if (child.isAcceptable()) {
+                        //child.setFather(this);
+                        children.add(child);
+                        child.setFather(this);
+                    }
+            }
+            child = new State(this.missionariesLeft, this.cannibalsLeft, this.missionariesRight, this.cannibalsRight, this.boatRight, this.capacity, this.maxCrosses);
+    		//} else {
+    			if (boatRight) {
+                    //while (!child.isAcceptable()) {
+                        child.randCrosstoLeft();
+                    //}
+                        if (heuristic > 0) child.evaluate(heuristic);
+                        if (child.isAcceptable()) {
+                        children.add(child);
+                        child.setFather(this);
+
+                }
+                }
+    		//}
 
         return children;
     }
 
-    private void addToList(List<State> children, State aState) {
-		if (aState.isAcceptable()) {
-			aState.setFather(this);
-			children.add(aState);
-		}
+    private void addToList(List<State> children, State child) {
+
+		//if (child.isAcceptable()) {
+            children.add(child);
+            child.setFather(this);
+		//}
 	}
-    
-    
-    
-    //calculate the random number of missionaries & cannibals that will move to the right
+
+
+
+    //calculate the random number of missionaries that will move right
     private void randCrosstoRight()
     {
         Random rand = new Random();
+
+        //if (randmiss + randcans == 0 || maxCrosses == 0) return false;
         //while no missionary and no cannibal has been chosen to move right
-        while(this.randmiss+this.randcans == 0) {
-        	//calculate the number of missionaries that will cross the river
-        	if(missionariesLeft <= capacity) {	//if missionaries left are less than the capacity of the boat e.g. 8 miss, 10 capacity
-        		this.randmiss = capacity - rand.nextInt(missionariesLeft+1);		//from 0 (no missionary) up to number of missionaries
-        	}
-        	else {	//if missionaries=5 and capacity=3
-        		this.randmiss = rand.nextInt(capacity+1);	//from 0 up to capacity
-        	}
-            this.missionariesLeft = this.missionariesLeft-this.randmiss;
-            this.missionariesRight = this.missionariesRight + this.randmiss;
-            
+        while(randmiss+randcans == 0) { // || !this.isAcceptable()
+            //calculate the number of missionaries that will cross the river
+            if(this.missionariesLeft <= this.capacity) {	//if missionaries left are less than the capacity of the boat e.g. 8 miss, 10 capacity
+                randmiss = this.capacity - rand.nextInt(this.missionariesLeft+1);		//from 0 (no missionary) up to number of missionaries
+            }
+            else {	//if missionaries=5 and capacity=3
+                randmiss = rand.nextInt(this.capacity+1);	//from 0 up to capacity
+            }
+            missionariesLeft = this.missionariesLeft-randmiss;
+            missionariesRight = this.missionariesRight + randmiss;
+
             //calculate the number of cannibals that will cross
-            if(cannibalsLeft <= (capacity - this.randmiss)) {	//if cannibals Left are less than the capacity of the boat minus the number of missionaries on the boat already
-        		this.randcans = capacity - this.randmiss - rand.nextInt(cannibalsLeft + 1);
-        	}
-        	else {	//if cannibals=5 and capacity=3 and missionaries on boat=1
-        		this.randcans = rand.nextInt(capacity - randmiss + 1);
-        	}
-            this.cannibalsLeft = this.cannibalsLeft-this.randcans;
-            this.cannibalsRight = this.cannibalsRight + this.randcans;
-            
+            if(this.cannibalsLeft <= (capacity - randmiss)) {	//if cannibals Left are less than the capacity of the boat minus the number of missionaries on the boat already
+                randcans = capacity - randmiss - rand.nextInt(this.cannibalsLeft + 1);
+            }
+            else {	//if cannibals=5 and capacity=3 and missionaries on boat=1
+                randcans = rand.nextInt(this.capacity - randmiss + 1);
+            }
+            cannibalsLeft = this.cannibalsLeft - randcans;
+            cannibalsRight = this.cannibalsRight + randcans;
+
+            boatRight = true;
+
         }
-        //the boat must be moved only when we exit the loop, not in case missionaries=cannibals=0 bc the variables have not changed yet
-        boatRight = true;
-        
-        this.crosses=this.crosses+1;
+
+        maxCrosses = this.maxCrosses  - 1;
+
+    //return true;
     }
-    
+
     private void randCrosstoLeft()
     {
         Random rand = new Random();
-     
-        while(this.randmiss + this.randcans == 0) {
-        	if(missionariesRight <= capacity) {	//if missionaries right are less than the capacity of the boat e.g. 8 miss, 10 capacity
-        		this.randmiss = capacity - rand.nextInt(missionariesRight + 1);		//from 0 (no missionary) up to number of missionaries(+1 is necessary)
-        	}
-        	else {	//if missionaries=5 and capacity=3
-        		this.randmiss = rand.nextInt(capacity+1);	//from 0 up to capacity
-        	}
-            this.missionariesRight = this.missionariesRight - this.randmiss;
-            this.missionariesLeft = this.missionariesLeft + this.randmiss;
-            
-            if(cannibalsRight <= capacity) {	//if cannibals right are less than the capacity of the boat e.g. 8 miss, 10 capacity
-        		this.randcans = capacity - rand.nextInt(cannibalsRight + 1);		//from 0 (no cannibals) up to number of cannibals(+1 is necessary)
-        	}
-        	else {	//if missionaries=5 and capacity=3
-        		this.randcans = rand.nextInt(capacity - randmiss + 1);	//from 0 up to capacity minus the number of missionaries already on boat
-        	}
-            this.cannibalsRight = this.cannibalsRight - this.randcans;
-            this.cannibalsLeft = this.cannibalsLeft + this.randcans;
-            
-            
-           
+
+        //if (randmiss + randcans == 0 || maxCrosses == 0) return false;
+
+        while(randmiss + randcans == 0) { // || !this.isAcceptable()
+            if(this.missionariesRight <= capacity) {	//if missionaries right are less than the capacity of the boat e.g. 8 miss, 10 capacity
+                randmiss = this.capacity - rand.nextInt(this.missionariesRight + 1);		//from 0 (no missionary) up to number of missionaries(+1 is necessary)
+            }
+            else {	//if missionaries=5 and capacity=3
+                randmiss = rand.nextInt(this.capacity+1);	//from 0 up to capacity
+            }
+            missionariesRight = this.missionariesRight - randmiss;
+            missionariesLeft = this.missionariesLeft + randmiss;
+
+            if(this.cannibalsRight <= this.capacity) {	//if cannibals right are less than the capacity of the boat e.g. 8 miss, 10 capacity
+                randcans = this.capacity - rand.nextInt(this.cannibalsRight + 1);		//from 0 (no cannibals) up to number of cannibals(+1 is necessary)
+            }
+            else {	//if missionaries=5 and capacity=3
+                randcans = rand.nextInt(this.capacity - randmiss + 1);	//from 0 up to capacity minus the number of missionaries already on boat
+            }
+            cannibalsRight = this.cannibalsRight - randcans;
+            cannibalsLeft = this.cannibalsLeft + randcans;
+
         }
         boatRight = false;
-        
-        this.crosses=this.crosses+1;
-        
-    }
 
-    
-  
+        maxCrosses=this.maxCrosses  - 1;
+
+        //return true;
+
+    }
+    public int depth(State n)
+    {
+        G = 0;
+        while (n.getFather() != null)
+        {
+            G++;
+            n = n.getFather();
+        }
+        return G;
+    }
     
     //euristic 1
     private void moreCannibals ()
     {
         if(boatRight && (missionariesLeft+cannibalsLeft)>0)
         {
-            score = score + (2 * (missionariesLeft+cannibalsLeft)) ;
+            score = score + (2 * (missionariesLeft+cannibalsLeft)) + depth(this);
             //G = G + depth(this);
         }
         else if(!boatRight && (missionariesLeft+cannibalsLeft)==1)
         {
-            score = score + 1;
+            score = score + 1 + depth(this);
         }
         else if(!boatRight && (missionariesLeft+cannibalsLeft)>1)
         {
-            score = score + (2 * (missionariesLeft+cannibalsLeft)-3);
+            score = score + (2 * (missionariesLeft+cannibalsLeft)-3) + depth(this);
         }
         else if ((missionariesLeft+cannibalsLeft)==0)
         {
-            score = score + 0;
+            score = score + 0 + depth(this);
         }
     }
     
@@ -197,15 +239,15 @@ public class State implements Comparable<State>
     {
         if(boatRight && (missionariesLeft+cannibalsLeft) > 0)
         {
-            score = score + 2;
+            score = score + 2 + depth(this);
         }
         else if(!boatRight && (missionariesLeft+cannibalsLeft)>0)
         {
-            score = score + 1;
+            score = score + 1 + depth(this);
         }
         else if ((missionariesLeft+cannibalsLeft)==0)
         {
-            score = score +0;
+            score = score +0 + depth(this);
         }
     }
 
@@ -319,16 +361,112 @@ public class State implements Comparable<State>
 
     public void setFather(State father) {
         this.father = father;
+
+    }
+    public int getCannibalsLeft() {
+        return cannibalsLeft;
+    }
+
+    public void setCannibalsLeft(int cannibalsLeft) {
+        this.cannibalsLeft = cannibalsLeft;
+    }
+
+    public int getMissionariesRight() {
+        return missionariesRight;
+    }
+
+    public void setMissionariesRight(int missionariesRight) {
+        this.missionariesRight = missionariesRight;
+    }
+
+    public int getCannibalsRight() {
+        return cannibalsRight;
+    }
+
+    public void setCannibalsRight(int cannibalsRight) {
+        this.cannibalsRight = cannibalsRight;
+    }
+
+    public boolean isBoatRight() {
+        return boatRight;
+    }
+
+    public void setBoatRight(boolean boatRight) {
+        this.boatRight = boatRight;
+    }
+
+    public int getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
+    }
+
+    public int getMaxCrosses() {
+        return maxCrosses;
+    }
+
+    public void setMaxCrosses(int maxCrosses) {
+        this.maxCrosses = maxCrosses;
+    }
+
+    public int getRandmiss() {
+        return randmiss;
+    }
+
+    public void setRandmiss(int randmiss) {
+        this.randmiss = randmiss;
+    }
+
+    public int getRandcans() {
+        return randcans;
+    }
+
+    public void setRandcans(int randcans) {
+        this.randcans = randcans;
+    }
+
+    public State getLeft() {
+        return left;
+    }
+
+    public void setLeft(State left) {
+        this.left = left;
+    }
+
+    public State getRight() {
+        return right;
+    }
+
+    public void setRight(State right) {
+        this.right = right;
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public void setScore(int score) {
+        this.score = score;
+    }
+
+    public int getG() {
+        return G;
+    }
+
+    public void setG(int g) {
+        G = g;
     }
 
     public boolean isFinal()
     {
-    	if(this.crosses>maxCrosses) {
+    	if(this.maxCrosses == 0) {
     		System.out.println("The number of crosses is bigger than the desirable ");
-    		return false;
+    		//return true;
     	}
     	
-        return missionariesLeft == 0 && cannibalsLeft == 0 && this.crosses<=maxCrosses;
+        return (missionariesLeft == 0 && cannibalsLeft == 0) || this.maxCrosses == 0;
     }
 
     private void evaluate (int heuristic)
