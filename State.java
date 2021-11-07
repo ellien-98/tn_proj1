@@ -44,8 +44,6 @@ public class State implements Comparable<State>
         
         this.capacity = capacity;
         this.maxCrosses = maxCrosses;
-        //this.crossesLeft = maxCrosses;
-
     }
 
     public int getMissionariesLeft() {
@@ -91,33 +89,45 @@ public class State implements Comparable<State>
     {
 
         ArrayList<State> children = new ArrayList<>();
-        State child = new State(missionariesLeft, cannibalsLeft, missionariesRight, cannibalsRight, boatRight, capacity, maxCrosses);
-                if (!boatRight) {
-                    //while (!child.isAcceptable()) {
-                        child.randCrosstoRight();
-                    //}
-                    if (heuristic > 0) child.evaluate(heuristic);
-                    if (child.isAcceptable()) {
-                        //child.setFather(this);
-                        children.add(child);
-                        child.setFather(this);
-                    }
+        State child = new State(this.missionariesLeft, this.cannibalsLeft, this.missionariesRight, this.cannibalsRight, this.boatRight, this.capacity, this.maxCrosses);
+        if (maxCrosses != 0) {
+            if (child.randCrosstoRight()) {
+                //while (!child.isAcceptable()) {
+                //child.randCrosstoRight();
+                //}
+                if (heuristic > 0) child.evaluate(heuristic);
+                //child.randCrosstoRight();
+                if (child.isAcceptable()) {
+                    //child.setFather(this);
+                    children.add(child);
+                    child.setFather(this);
+                }
+                else{
+                    children.add(this);
+                }
             }
             child = new State(this.missionariesLeft, this.cannibalsLeft, this.missionariesRight, this.cannibalsRight, this.boatRight, this.capacity, this.maxCrosses);
-    		//} else {
-    			if (boatRight) {
-                    //while (!child.isAcceptable()) {
-                        child.randCrosstoLeft();
-                    //}
-                        if (heuristic > 0) child.evaluate(heuristic);
-                        if (child.isAcceptable()) {
-                        children.add(child);
-                        child.setFather(this);
+            //} else {
+            if (child.randCrosstoLeft()) {
+                //while (!child.isAcceptable()) {
+                //child.randCrosstoLeft();
+                //}
+                if (heuristic > 0) child.evaluate(heuristic);
+                //child.randCrosstoLeft();
+                if (child.isAcceptable()) {
+                    children.add(child);
+                    child.setFather(this);
 
                 }
+                else{
+                    children.add(this);
                 }
-    		//}
-
+            }
+            //}
+        }
+        else{
+            System.out.print("Over max crosses");
+        }
         return children;
     }
 
@@ -132,11 +142,11 @@ public class State implements Comparable<State>
 
 
     //calculate the random number of missionaries that will move right
-    private void randCrosstoRight()
+    private boolean randCrosstoRight()
     {
         Random rand = new Random();
 
-        //if (randmiss + randcans == 0 || maxCrosses == 0) return false;
+        if (boatRight) return false;
         //while no missionary and no cannibal has been chosen to move right
         while(randmiss+randcans == 0) { // || !this.isAcceptable()
             //calculate the number of missionaries that will cross the river
@@ -165,14 +175,14 @@ public class State implements Comparable<State>
 
         maxCrosses = this.maxCrosses  - 1;
 
-    //return true;
+    return true;
     }
 
-    private void randCrosstoLeft()
+    private boolean randCrosstoLeft()
     {
         Random rand = new Random();
 
-        //if (randmiss + randcans == 0 || maxCrosses == 0) return false;
+        if (!boatRight) return false;
 
         while(randmiss + randcans == 0) { // || !this.isAcceptable()
             if(this.missionariesRight <= capacity) {	//if missionaries right are less than the capacity of the boat e.g. 8 miss, 10 capacity
@@ -198,16 +208,19 @@ public class State implements Comparable<State>
 
         maxCrosses=this.maxCrosses  - 1;
 
-        //return true;
+        return true;
 
     }
     public int depth(State n)
     {
         G = 0;
+        ArrayList<State> path = new ArrayList<>();
         while (n.getFather() != null)
         {
-            G++;
+
+            path.add(n.getFather());
             n = n.getFather();
+            G++;
         }
         return G;
     }
@@ -261,99 +274,7 @@ public class State implements Comparable<State>
 	}
 
     
-    boolean missionaryRight()
-    {
-        if (missionariesLeft == 0) return false;
-        this.missionariesLeft--;
-        this.missionariesRight++;
-        boatRight = true;
-        return true;
-    }
 
-    boolean twoMissionariesRight()
-    {
-        if (missionariesLeft == 0 || missionariesLeft == 1) return false;
-        this.missionariesLeft = this.missionariesLeft - 2;
-        this.missionariesRight = this.missionariesRight + 2;
-        boatRight = true;
-        return true;
-    }
-
-    boolean cannibalRight()
-    {
-        if (cannibalsLeft == 0) return false;
-        this.cannibalsLeft--;
-        this.cannibalsRight++;
-        boatRight = true;
-        return true;
-    }
-
-    boolean twoCannibalsRight()
-    {
-        if (cannibalsLeft == 0 || cannibalsLeft == 1) return false;
-        this.cannibalsLeft = this.cannibalsLeft - 2;
-        this.cannibalsRight = this.cannibalsRight + 2;
-        boatRight = true;
-        return true;
-    }
-
-    boolean missionaryCannibalRight()
-    {
-        if (cannibalsLeft == 0 || missionariesLeft == 0) return false;
-        this.cannibalsLeft--;
-        this.missionariesLeft--;
-        this.cannibalsRight++;
-        this.missionariesRight++;
-        boatRight = true;
-        return true;
-    }
-
-    boolean missionaryLeft()
-    {
-        if (missionariesRight == 0) return false;
-        this.missionariesRight--;
-        this.missionariesLeft++;
-        boatRight = false;
-        return true;
-    }
-
-    boolean twoMissionariesLeft()
-    {
-        if (missionariesRight == 0 || missionariesRight == 1) return false;
-        this.missionariesRight = this.missionariesRight - 2;
-        this.missionariesLeft = this.missionariesLeft + 2;
-        boatRight = false;
-        return true;
-    }
-
-    boolean cannibalLeft()
-    {
-        if (cannibalsRight == 0) return false;
-        this.cannibalsRight++;
-        this.cannibalsLeft++;
-        boatRight = false;
-        return true;
-    }
-
-    boolean twoCannibalsLeft()
-    {
-        if (cannibalsRight == 0 || cannibalsRight == 1) return false;
-        this.cannibalsRight = this.cannibalsRight - 2;
-        this.cannibalsLeft = this.cannibalsLeft + 2;
-        boatRight = false;
-        return true;
-    }
-
-    boolean missionaryCannibalLeft()
-    {
-        if (cannibalsRight == 0 || missionariesRight == 0) return false;
-        this.cannibalsRight--;
-        this.missionariesRight--;
-        this.cannibalsLeft++;
-        this.missionariesLeft++;
-        boatRight = false;
-        return true;
-    }
 
     public State getFather() {
         return father;
@@ -461,12 +382,19 @@ public class State implements Comparable<State>
 
     public boolean isFinal()
     {
-    	if(this.maxCrosses == 0) {
-    		System.out.println("The number of crosses is bigger than the desirable ");
-    		//return true;
-    	}
-    	
-        return (missionariesLeft == 0 && cannibalsLeft == 0) || this.maxCrosses == 0;
+
+        return missionariesLeft == 0 && cannibalsLeft == 0;
+    }
+
+    public boolean overMaxCrosses()
+    {
+
+        if(this.maxCrosses == 0) {
+            System.out.println("The number of crosses is bigger than the desirable ");
+            //return true;
+        }
+        return  this.maxCrosses == 0;
+
     }
 
     private void evaluate (int heuristic)
@@ -489,7 +417,180 @@ public class State implements Comparable<State>
     {
         return Double.compare(this.score, s.score); // compare based on the heuristic score.
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof State)) {
+            return false;
+        }
+        State s = (State) obj;
+        return (s.cannibalsLeft == cannibalsLeft && s.missionariesLeft == missionariesLeft
+                && s.boatRight == boatRight && s.cannibalsRight == cannibalsRight
+                && s.missionariesRight == missionariesRight);
+    }
+    // override this for proper hash set comparisons.
+    @Override
+    public int hashCode()
+    {
+        return this.missionariesLeft + this.missionariesRight + this.cannibalsLeft + this.cannibalsRight + identifier();
+    }
+
+    int identifier()
+    {
+        int result = 0;
+
+        // a unique sum based on the numbers in each state.
+        // e.g., for i=j=0 in the fixed initial state --> 3^( (0*0) + 0) * 8 = 1 + 8 = 9
+        // for another state, this will not be the same
+        result += Math.pow(this.missionariesRight, (this.missionariesRight + this.cannibalsRight) + this.cannibalsRight);
+
+        return result;
+    }
 /*
+    // override this for proper hash set comparisons.
+    @Override
+    public boolean equals(Object obj)
+    {
+        if(this.missionariesLeft != ((State)obj).missionariesLeft) return false;
+        if(this.missionariesRight != ((State)obj).missionariesRight) return false;
+        if(this.cannibalsLeft != ((State)obj).cannibalsLeft) return false;
+        if(this.cannibalsRight != ((State)obj).cannibalsRight) return false;
+
+        if(this.boatRight != ((State)obj).boatRight) return false;
+
+        return true;
+    }
+
+    // override this for proper hash set comparisons.
+    @Override
+    public int hashCode()
+    {
+        return this.missionariesLeft + this.missionariesRight + this.cannibalsLeft + this.cannibalsRight + identifier();
+    }
+
+    int identifier()
+    {
+        int result = 0;
+
+                // a unique sum based on the numbers in each state.
+                // e.g., for i=j=0 in the fixed initial state --> 3^( (0*0) + 0) * 8 = 1 + 8 = 9
+                // for another state, this will not be the same
+         result += Math.pow(this.missionariesRight, (this.missionariesRight * this.cannibalsLeft) + this.cannibalsRight) * this.missionariesLeft;
+
+        return result;
+    }
+
+
+ boolean missionaryRight()
+    {
+        if (missionariesLeft == 0) return false;
+        this.missionariesLeft--;
+        this.missionariesRight++;
+        boatRight = true;
+        return true;
+    }
+
+    boolean twoMissionariesRight()
+    {
+        if (missionariesLeft == 0 || missionariesLeft == 1) return false;
+        this.missionariesLeft = this.missionariesLeft - 2;
+        this.missionariesRight = this.missionariesRight + 2;
+        boatRight = true;
+        return true;
+    }
+
+    boolean cannibalRight()
+    {
+        if (cannibalsLeft == 0) return false;
+        this.cannibalsLeft--;
+        this.cannibalsRight++;
+        boatRight = true;
+        return true;
+    }
+
+    boolean twoCannibalsRight()
+    {
+        if (cannibalsLeft == 0 || cannibalsLeft == 1) return false;
+        this.cannibalsLeft = this.cannibalsLeft - 2;
+        this.cannibalsRight = this.cannibalsRight + 2;
+        boatRight = true;
+        return true;
+    }
+
+    boolean missionaryCannibalRight()
+    {
+        if (cannibalsLeft == 0 || missionariesLeft == 0) return false;
+        this.cannibalsLeft--;
+        this.missionariesLeft--;
+        this.cannibalsRight++;
+        this.missionariesRight++;
+        boatRight = true;
+        return true;
+    }
+
+    boolean missionaryLeft()
+    {
+        if (missionariesRight == 0) return false;
+        this.missionariesRight--;
+        this.missionariesLeft++;
+        boatRight = false;
+        return true;
+    }
+
+    boolean twoMissionariesLeft()
+    {
+        if (missionariesRight == 0 || missionariesRight == 1) return false;
+        this.missionariesRight = this.missionariesRight - 2;
+        this.missionariesLeft = this.missionariesLeft + 2;
+        boatRight = false;
+        return true;
+    }
+
+    boolean cannibalLeft()
+    {
+        if (cannibalsRight == 0) return false;
+        this.cannibalsRight++;
+        this.cannibalsLeft++;
+        boatRight = false;
+        return true;
+    }
+
+    boolean twoCannibalsLeft()
+    {
+        if (cannibalsRight == 0 || cannibalsRight == 1) return false;
+        this.cannibalsRight = this.cannibalsRight - 2;
+        this.cannibalsLeft = this.cannibalsLeft + 2;
+        boatRight = false;
+        return true;
+    }
+
+    boolean missionaryCannibalLeft()
+    {
+        if (cannibalsRight == 0 || missionariesRight == 0) return false;
+        this.cannibalsRight--;
+        this.missionariesRight--;
+        this.cannibalsLeft++;
+        this.missionariesLeft++;
+        boatRight = false;
+        return true;
+    }
+    int identifier()
+    {
+        int result = 0;
+        for(int i = 0; i < this.dimension; i++)
+        {
+            for(int j = 0; j < this.dimension; j++)
+            {
+                // a unique sum based on the numbers in each state.
+                // e.g., for i=j=0 in the fixed initial state --> 3^( (0*0) + 0) * 8 = 1 + 8 = 9
+                // for another state, this will not be the same
+                result += Math.pow(this.dimension, (this.dimension * i) + j) * this.tiles[i][j];
+            }
+        }
+        return result;
+    }
+}
+
     // override this for proper hash set comparisons.
     @Override
     public boolean equals(Object obj)
