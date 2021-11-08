@@ -12,30 +12,24 @@ public class Main
         Scanner sc = new Scanner(System.in);
         System.out.println("Enter the number of Missionaries. Same number will be applied for cannibals: ");
         int missionaries = Integer.parseInt(sc.nextLine());
-        //sc.close();
         int cannibals = missionaries;
-        
-        //Scanner sc2 = new Scanner(System.in);
+
         System.out.println("Enter the capacity of the boat: ");
         int capacity = Integer.parseInt(sc.nextLine());
-        //sc2.close();
-        
-        //Scanner sc3 = new Scanner(System.in);
+
         System.out.println("Enter the times the boat is allowed to cross the river: ");
         int k = Integer.parseInt(sc.nextLine());
         sc.close();
-        
         
         State initialState = new State (missionaries, cannibals, 0, 0, false, capacity, k);
  
         SpaceSearcher searcher = new SpaceSearcher();
 
         long start = System.currentTimeMillis();
-        //int heuristic = 1; //error
         State terminalState = searcher.AStarClosedSet(initialState, 1);
         long end = System.currentTimeMillis();
 
-        if (terminalState == null) System.out.println("Could not find a solution");
+        if (terminalState == null) System.out.println("Could not find a solution.");
         else
         {
             State temp = terminalState;
@@ -50,6 +44,7 @@ public class Main
             {
                 item.print();
             }
+            terminalState.print();
             System.out.println();
             System.out.println("Search time: " + (double)(end-start)/1000 + " sec.");
         }
