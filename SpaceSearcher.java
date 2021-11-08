@@ -13,13 +13,13 @@ public class SpaceSearcher
         this.closedSet = new HashSet<>();
     }
 
-
+    //-------
     State AStarClosedSet(State initialState, int heuristic)
     {
         if(initialState.isFinal()) return initialState;
         // step 1: put initial state in the frontier.
         this.frontier.add(initialState);
-
+        this.closedSet.add(initialState);
         // step 2: check for empty frontier.
         while(this.frontier.size() > 0)
         {
