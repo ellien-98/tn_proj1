@@ -14,8 +14,8 @@ public class State implements Comparable<State> {
     private int maxCrosses;
 
     //-----arxikopoihsh gia na mhn yparxei provlhma sth synarthsh
-    private int randmiss = 0;
-    private int randcans = 0;
+    private int miss = 0;
+    private int cans = 0;
 
     private State father = null;
 
@@ -24,9 +24,9 @@ public class State implements Comparable<State> {
 
     //----
     //distance from root
-    private int g;
+    private int depth;
 
-    State(int missionariesLeft, int cannibalsLeft, int missionariesRight, int cannibalsRight, boolean boatRight, int capacity, int maxCrosses) {
+    State(int missionariesLeft, int cannibalsLeft, int missionariesRight, int cannibalsRight, boolean boatRight, int capacity, int maxCrosses, int depth) {
         this.missionariesLeft = missionariesLeft;
         this.cannibalsLeft = cannibalsLeft;
         this.missionariesRight = missionariesRight;
@@ -35,6 +35,8 @@ public class State implements Comparable<State> {
 
         this.capacity = capacity;
         this.maxCrosses = maxCrosses;
+
+        this.depth = depth(this);
     }
 
 
@@ -52,31 +54,32 @@ public class State implements Comparable<State> {
     ArrayList<State> getChildren(int heuristic) {
 
         ArrayList<State> children = new ArrayList<>();
-        Random rand = new Random();
+        //Random rand = new Random();
         State child;
         //when boat is left and want to go right calculate all possible children
         if (!boatRight) {
-            while ((randmiss + randcans) == 0) {
-                //calculate the number of missionaries that will cross the river
-                if (this.missionariesLeft <= this.capacity) {    //if missionaries left are less than the capacity of the boat e.g. 8 miss, 10 capacity
-                    //we must calculate all potential crosses and make them childs
-                    for(int i = 1; i <= this.missionariesLeft; i++){
-                        randmiss = i;
+            //while ((miss + cans) == 0) {
+            //calculate the number of missionaries that will cross the river
+            if (this.missionariesLeft <= this.capacity) {    //if missionaries left are less than the capacity of the boat e.g. 8 miss, 10 capacity
+                //we must calculate all potential crosses and make them childs
+                for (int i = 0; i <= this.missionariesLeft; i++) {
 
-                        for(int j=1; j<=this.cannibalsLeft; j++){
-                            if((j+randmiss) <= this.capacity){  // else mhn kaneis child
+                    miss = i;
+                    if (miss <= this.capacity) {
+                        for (int j = 0; j <= this.cannibalsLeft; j++) {
+                            if ((j + miss) <= this.capacity && (miss + j) != 0) {  // else mhn kaneis child
                                 //this is the point where it makes the i-th child
-                                child = new State(this.missionariesLeft, this.cannibalsLeft, this.missionariesRight, this.cannibalsRight, this.boatRight, this.capacity, this.maxCrosses);
-                                randcans = j;
-                                child.cannibalsLeft = this.cannibalsLeft - randcans;
-                                child.cannibalsRight = this.cannibalsRight + randcans;
-                                child.missionariesLeft = this.missionariesLeft - randmiss;
-                                child.missionariesRight = this.missionariesRight + randmiss;
+                                child = new State(this.missionariesLeft, this.cannibalsLeft, this.missionariesRight, this.cannibalsRight, this.boatRight, this.capacity, this.maxCrosses, this.depth);
+                                cans = j;
+                                child.cannibalsLeft = this.cannibalsLeft - cans;
+                                child.cannibalsRight = this.cannibalsRight + cans;
+                                child.missionariesLeft = this.missionariesLeft - miss;
+                                child.missionariesRight = this.missionariesRight + miss;
                                 if (heuristic > 0) {
                                     child.evaluate(heuristic);
                                 }
                                 if (child.isAcceptable()) {
-                                    boatRight = true;
+                                    child.boatRight = true;
                                     child.maxCrosses--;
                                     children.add(child);
                                     child.setFather(this);
@@ -85,85 +88,88 @@ public class State implements Comparable<State> {
                         }
                     }
                 }
-                else if (this.missionariesLeft > this.capacity){    //if missionaries=5 and capacity=3
-                    for(int i = 1; i <= this.capacity; i++){
-                        randmiss = i;
-                        for(int j=1; j<=this.cannibalsLeft; j++){
-                            if((j+randmiss) <= this.capacity){  // else mhn kaneis child
-                                //this is the point where it makes the i-th child
-                                child = new State(this.missionariesLeft, this.cannibalsLeft, this.missionariesRight, this.cannibalsRight, this.boatRight, this.capacity, this.maxCrosses);
-                                randcans = j;
-                                child.cannibalsLeft = this.cannibalsLeft - randcans;
-                                child.cannibalsRight = this.cannibalsRight + randcans;
-                                child.missionariesLeft = this.missionariesLeft - randmiss;
-                                child.missionariesRight = this.missionariesRight + randmiss;
-                                if (heuristic > 0) {
-                                    child.evaluate(heuristic);
-                                }
-                                if (child.isAcceptable()) {
-                                    boatRight = true;
-                                    child.maxCrosses--;
-                                    children.add(child);
-                                    child.setFather(this);
-                                }
+
+            } else if (this.missionariesLeft > this.capacity) {    //if missionaries=5 and capacity=3
+                for (int i = 0; i <= this.capacity; i++) {
+                    miss = i;
+                    for (int j = 0; j <= this.cannibalsLeft; j++) {
+                        if ((j + miss) <= this.capacity && (miss + j) != 0) {  // else mhn kaneis child
+                            //this is the point where it makes the i-th child
+                            child = new State(this.missionariesLeft, this.cannibalsLeft, this.missionariesRight, this.cannibalsRight, this.boatRight, this.capacity, this.maxCrosses, this.depth);
+                            cans = j;
+                            child.cannibalsLeft = this.cannibalsLeft - cans;
+                            child.cannibalsRight = this.cannibalsRight + cans;
+                            child.missionariesLeft = this.missionariesLeft - miss;
+                            child.missionariesRight = this.missionariesRight + miss;
+                            if (heuristic > 0) {
+                                child.evaluate(heuristic);
+                            }
+                            if (child.isAcceptable()) {
+                                child.boatRight = true;
+                                child.maxCrosses--;
+                                children.add(child);
+                                child.setFather(this);
                             }
                         }
                     }
                 }
             }
+            // }
 
         }
+//}
         //when boat is right and want to go left
         if (boatRight) {
-            while ((randmiss + randcans) == 0) {
-                //calculate the number of missionaries that will cross the river
-                if (this.missionariesRight <= capacity) {    //if missionaries left are less than the capacity of the boat e.g. 8 miss, 10 capacity
-                    //we must calculate all potential crosses and make them childs
-                    for(int i = 1; i <= this.missionariesRight; i++){
-                        randmiss = i;
-                        for(int j=1; j<=this.cannibalsRight; j++){
-                            if((j+randmiss) <= this.capacity){  // else mhn kaneis child
-                                //this is the point where it makes the ij-th child
-                                child = new State(this.missionariesLeft, this.cannibalsLeft, this.missionariesRight, this.cannibalsRight, this.boatRight, this.capacity, this.maxCrosses);
-                                randcans = j;
-                                child.cannibalsLeft = this.cannibalsLeft + randcans;
-                                child.cannibalsRight = this.cannibalsRight - randcans;
-                                child.missionariesLeft = this.missionariesLeft + randmiss;
-                                child.missionariesRight = this.missionariesRight - randmiss;
-                                if (heuristic > 0) {
-                                    child.evaluate(heuristic);
-                                }
-                                if (child.isAcceptable()) {
-                                    boatRight = false;
-                                    child.maxCrosses--;
-                                    children.add(child);
-                                    child.setFather(this);
-                                }
+            //while ((miss + cans) == 0) {
+            //calculate the number of missionaries that will cross the river
+            if (this.missionariesRight <= capacity) {    //if missionaries left are less than the capacity of the boat e.g. 8 miss, 10 capacity
+            //we must calculate all potential crosses and make them childs
+            for (int i = 0; i <= this.missionariesRight; i++) {
+                miss = i;
+                if (miss <= this.capacity) {
+                    for (int j = 0; j <= this.cannibalsRight; j++) {
+                        if ((j + miss) <= this.capacity && (miss + j) != 0) {  // else mhn kaneis child
+                            //this is the point where it makes the ij-th child
+                            child = new State(this.missionariesLeft, this.cannibalsLeft, this.missionariesRight, this.cannibalsRight, this.boatRight, this.capacity, this.maxCrosses, this.depth);
+                            cans = j;
+                            child.cannibalsLeft = this.cannibalsLeft + cans;
+                            child.cannibalsRight = this.cannibalsRight - cans;
+                            child.missionariesLeft = this.missionariesLeft + miss;
+                            child.missionariesRight = this.missionariesRight - miss;
+                            if (heuristic > 0) {
+                                child.evaluate(heuristic);
+                            }
+                            if (child.isAcceptable()) {
+                                child.boatRight = false;
+                                child.maxCrosses--;
+                                children.add(child);
+                                child.setFather(this);
                             }
                         }
                     }
                 }
-                else if (this.missionariesLeft > this.capacity){    //if missionaries=5 and capacity=3
-                    for(int i = 1; i <= this.capacity; i++){
-                        randmiss = i;
-                        for(int j=1; j<=this.cannibalsLeft; j++){
-                            if((j+randmiss) <= this.capacity){  // else mhn kaneis child
-                                //this is the point where it makes the i-th child
-                                child = new State(this.missionariesLeft, this.cannibalsLeft, this.missionariesRight, this.cannibalsRight, this.boatRight, this.capacity, this.maxCrosses);
-                                randcans = j;
-                                child.cannibalsLeft = this.cannibalsLeft - randcans;
-                                child.cannibalsRight = this.cannibalsRight + randcans;
-                                child.missionariesLeft = this.missionariesLeft - randmiss;
-                                child.missionariesRight = this.missionariesRight + randmiss;
-                                if (heuristic > 0) {
-                                    child.evaluate(heuristic);
-                                }
-                                if (child.isAcceptable()) {
-                                    boatRight = false;
-                                    child.maxCrosses--;
-                                    children.add(child);
-                                    child.setFather(this);
-                                }
+            }
+        }
+        else if (this.missionariesLeft > this.capacity) {    //if missionaries=5 and capacity=3
+                for (int i = 1; i <= this.capacity; i++) {
+                    miss = i;
+                    for (int j = 1; j <= this.cannibalsLeft; j++) {
+                        if ((j + miss) <= this.capacity && (miss + cans) != 0) {  // else mhn kaneis child
+                            //this is the point where it makes the i-th child
+                            child = new State(this.missionariesLeft, this.cannibalsLeft, this.missionariesRight, this.cannibalsRight, this.boatRight, this.capacity, this.maxCrosses, this.depth);
+                            cans = j;
+                            child.cannibalsLeft = this.cannibalsLeft - cans;
+                            child.cannibalsRight = this.cannibalsRight + cans;
+                            child.missionariesLeft = this.missionariesLeft - miss;
+                            child.missionariesRight = this.missionariesRight + miss;
+                            if (heuristic > 0) {
+                                child.evaluate(heuristic);
+                            }
+                            if (child.isAcceptable()) {
+                                child.boatRight = false;
+                                child.maxCrosses--;
+                                children.add(child);
+                                child.setFather(this);
                             }
                         }
                     }
@@ -172,17 +178,21 @@ public class State implements Comparable<State> {
         }
         return children;
     }
-
-    //---
     public int depth(State n) {
-        if(n == null){
-            return g;
+        if(n.getFather() == null){
+            return depth = 0;
         }
         else{
+            //while (n.getFather() != null){
             //g = depth(n.getFather());
-            return g=depth(n.getFather()) + 1;
+            return depth(n.getFather()) + 1;
+             //   g++;
+              //  n = n.getFather();
+              //  }
         }
+       // return g;
     }
+
 
     //euristic 1
     private void moreCannibals() {
@@ -232,10 +242,10 @@ public class State implements Comparable<State> {
     private void evaluate(int heuristic) {
         switch (heuristic) {
             case 1:
-                this.moreThanTwoPeople();
+                this.moreCannibals();
                 break;
             case 2:
-                this.moreCannibals();
+                this.moreThanTwoPeople();
                 break;
             default:
                 break;
@@ -345,20 +355,20 @@ public class State implements Comparable<State> {
         this.maxCrosses = maxCrosses;
     }
 
-    public int getRandmiss() {
-        return randmiss;
+    public int getMiss() {
+        return miss;
     }
 
-    public void setRandmiss(int randmiss) {
-        this.randmiss = randmiss;
+    public void setMiss(int miss) {
+        this.miss = miss;
     }
 
-    public int getRandcans() {
-        return randcans;
+    public int getCans() {
+        return cans;
     }
 
-    public void setRandcans(int randcans) {
-        this.randcans = randcans;
+    public void setCans(int cans) {
+        this.cans = cans;
     }
 
     public int getScore() {
@@ -369,12 +379,12 @@ public class State implements Comparable<State> {
         this.score = score;
     }
 
-    public int getG() {
-        return g;
+    public int getDepth() {
+        return depth;
     }
 
-    public void setG(int g) {
-        g = this.g;
+    public void setDepth(int depth) {
+        depth = this.depth;
     }
 
 }
