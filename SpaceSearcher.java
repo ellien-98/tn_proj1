@@ -27,7 +27,6 @@ public class SpaceSearcher
             State currentState = this.frontier.remove(0);
             // step 4: if final state, return.
             if(currentState.isFinal()) return currentState;
-
             // step 5: if the node is not in the closed set, put the children at the frontier.
             // else go to step 2.
             if(!this.closedSet.contains(currentState))
@@ -36,6 +35,7 @@ public class SpaceSearcher
                 this.frontier.addAll(currentState.getChildren(heuristic));
                 // step 6: sort the frontier based on the heuristic score to get best as first
                 Collections.sort(this.frontier); // sort the frontier to get best as first
+                Collections.reverse(this.frontier);
             }
         }
         return null;
