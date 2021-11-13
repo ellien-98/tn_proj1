@@ -13,10 +13,6 @@ public class State implements Comparable<State> {
     static int capacity;
     private int maxCrosses;
 
-    //-----arxikopoihsh gia na mhn yparxei provlhma sth synarthsh
-    //private int miss = 0;
-    //private int cans = 0;
-
     private State father = null;
 
     //heuristic score
@@ -26,14 +22,14 @@ public class State implements Comparable<State> {
     //distance from root
     private int depth;
 
-    State(int missionariesLeft, int cannibalsLeft, int missionariesRight, int cannibalsRight, boolean boatRight, int capacity, int maxCrosses, int depth) {
+    State(int missionariesLeft, int cannibalsLeft, int missionariesRight, int cannibalsRight, boolean boatRight, int maxCrosses, int depth) {
         this.missionariesLeft = missionariesLeft;
         this.cannibalsLeft = cannibalsLeft;
         this.missionariesRight = missionariesRight;
         this.cannibalsRight = cannibalsRight;
         this.boatRight = boatRight;
 
-        this.capacity = capacity;
+
         this.maxCrosses = maxCrosses;
 
         this.depth = depth;
@@ -58,7 +54,8 @@ public class State implements Comparable<State> {
         if (!boatRight) {
                 for (int i = 0; i <= this.missionariesLeft; i++) {
                     for (int j = 0; j <= this.cannibalsLeft; j++) {
-                        if ( (i + j) <= capacity && (j + i) > 0) {  // else mhn kaneis child
+                        if ( ((i + j) <= capacity) && ((j + i) > 0)) {  // else mhn kaneis child
+                            if (capacity>2 && j>i) continue;
                             //this is the point where it makes the i-th child
                             int newCannibalsLeft = this.cannibalsLeft - j;
                             int newCannibalsRight = this.cannibalsRight + j;
@@ -67,9 +64,14 @@ public class State implements Comparable<State> {
                             boolean newBoatRight = true;
                             int newMaxCrosses = maxCrosses - 1;
                             int newdepth = depth +1;
-                            child = new State(newMissionariesLeft, newCannibalsLeft, newMissionariesRight, newCannibalsRight, newBoatRight, capacity, newMaxCrosses, newdepth);
+                            child = new State(newMissionariesLeft, newCannibalsLeft, newMissionariesRight, newCannibalsRight, newBoatRight, newMaxCrosses, newdepth);
                             if (heuristic > 0) {
                                 child.evaluate(heuristic);
+                            }
+                            if (maxCrosses < 0)
+                            {
+                                System.out.println("The number of crosses is bigger than the desirable.");
+                                return children;
                             }
                             if (child.isAcceptable()) {
                                 children.add(child);
@@ -83,7 +85,8 @@ public class State implements Comparable<State> {
         if (boatRight) {
             for (int i = 0; i <= this.missionariesRight; i++) {
                 for (int j = 0; j <= this.cannibalsRight; j++) {
-                    if ((i + j) <= capacity && (j + i)>0) {  // else mhn kaneis child//(j + i) <= this.capacity &&
+                    if (((i + j) <= capacity) && ((j + i)>0)) {  // else mhn kaneis child
+                        if (capacity>2 && j>i) continue;
                         //this is the point where it makes the i-th child
                         int newCannibalsLeft = this.cannibalsLeft + j;
                         int newCannibalsRight = this.cannibalsRight - j;
@@ -92,9 +95,14 @@ public class State implements Comparable<State> {
                         boolean newBoatRight = false;
                         int newMaxCrosses = maxCrosses - 1;
                         int newdepth = depth +1;
-                        child = new State(newMissionariesLeft, newCannibalsLeft, newMissionariesRight, newCannibalsRight, newBoatRight, capacity, newMaxCrosses, newdepth);
+                        child = new State(newMissionariesLeft, newCannibalsLeft, newMissionariesRight, newCannibalsRight, newBoatRight, newMaxCrosses, newdepth);
                         if (heuristic > 0) {
                         child.evaluate(heuristic);
+                        }
+                        if (maxCrosses < 0)
+                        {
+                            System.out.println("The number of crosses is bigger than the desirable.");
+                            return children;
                         }
                         if (child.isAcceptable()) {
                             children.add(child);
@@ -107,54 +115,42 @@ public class State implements Comparable<State> {
         return children;
     }
 
-
-   /*
-    public int depth() {
-        if(this.getFather() == null){
-            return depth = 0;
-        }
-        return depth = this.getFather().depth + 1;
-    }*/
-
     //euristic 1
     private void moreCannibals() {
         if (boatRight && (missionariesLeft + cannibalsLeft) > 0) {
-            score = (2 * (missionariesLeft + cannibalsLeft)) + this.depth; //+score
+            score = score + (2 * (missionariesLeft + cannibalsLeft)) + this.depth; //+score
             //G = G + depth(this);
         } else if (!boatRight && (missionariesLeft + cannibalsLeft) == 1) {
-            score = 1 + this.depth;
+            score = score + 1 + this.depth;
         } else if (!boatRight && (missionariesLeft + cannibalsLeft) > 1) {
-            score = (2 * (missionariesLeft + cannibalsLeft) - 3) + this.depth;
+            score = score + (2 * (missionariesLeft + cannibalsLeft) - 3) + this.depth;
         } else if ((missionariesLeft + cannibalsLeft) == 0) {
-            score = 0 + this.depth;
+            score = score + 0 + this.depth;
         }
     }
 
     //euristic 2
     private void moreThanTwoPeople() {
         if (boatRight && (missionariesLeft + cannibalsLeft) > 0) {
-            score = 2 + this.depth;
+            score = score + 2 + this.depth;
         } else if (!boatRight && (missionariesLeft + cannibalsLeft) > 0) {
-            score = 1 + this.depth;
+            score = score + 1 + this.depth;
         } else if ((missionariesLeft + cannibalsLeft) == 0) {
-            score = 0 + this.depth;
+            score = score + 0 + this.depth;
         }
     }
 
     public boolean isAcceptable() {
         if (missionariesLeft >= 0 && missionariesRight >= 0 && cannibalsLeft >= 0 && cannibalsRight >= 0
                 && (missionariesLeft == 0 || missionariesLeft >= cannibalsLeft)
-                && (missionariesRight == 0 || missionariesRight >= cannibalsRight) && maxCrosses >= 0) {  //&& (miss + cans !=0) && (miss + cans <= capacity)
+                && (missionariesRight == 0 || missionariesRight >= cannibalsRight) ) {
             return true;
-        }
-        if (this.maxCrosses == 0) {
-            System.out.println("The number of crosses is bigger than the desirable.");
         }
         return false;
     }
 
     public boolean isFinal() {
-        return (missionariesLeft == 0 && cannibalsLeft == 0);
+        return (missionariesLeft == 0 && cannibalsLeft == 0) ;
     }
 
     private void evaluate(int heuristic) {

@@ -35,7 +35,6 @@ public class SpaceSearcher
                 this.frontier.addAll(currentState.getChildren(heuristic));
                 // step 6: sort the frontier based on the heuristic score to get best as first
                 Collections.sort(this.frontier); // sort the frontier to get best as first
-                Collections.reverse(this.frontier);
             }
         }
         return null;

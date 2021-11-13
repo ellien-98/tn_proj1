@@ -21,9 +21,8 @@ public class Main
         int k = Integer.parseInt(sc.nextLine());
         sc.close();
         
-        State initialState = new State (missionaries, cannibals, 0, 0, false, capacity, k, 0);
-
-        //initialState.setCapacity(capacity);
+        State initialState = new State (missionaries, cannibals, 0, 0, false, k, 0);
+        initialState.setCapacity(capacity);
 
         SpaceSearcher searcher = new SpaceSearcher();
 
