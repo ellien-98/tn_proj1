@@ -55,7 +55,7 @@ public class State implements Comparable<State> {
                 for (int i = 0; i <= this.missionariesLeft; i++) {
                     for (int j = 0; j <= this.cannibalsLeft; j++) {
                         if ( ((i + j) <= capacity) && ((j + i) > 0)) {  // else mhn kaneis child
-                            if (capacity>2 && j>i) continue;
+                            if (capacity>2 && (j>i && i != 0)) continue;
                             //this is the point where it makes the i-th child
                             int newCannibalsLeft = this.cannibalsLeft - j;
                             int newCannibalsRight = this.cannibalsRight + j;
@@ -86,7 +86,7 @@ public class State implements Comparable<State> {
             for (int i = 0; i <= this.missionariesRight; i++) {
                 for (int j = 0; j <= this.cannibalsRight; j++) {
                     if (((i + j) <= capacity) && ((j + i)>0)) {  // else mhn kaneis child
-                        if (capacity>2 && j>i) continue;
+                        if (capacity>2 && (j > i && i != 0)) continue;
                         //this is the point where it makes the i-th child
                         int newCannibalsLeft = this.cannibalsLeft + j;
                         int newCannibalsRight = this.cannibalsRight - j;
